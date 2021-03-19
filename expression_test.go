@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/importer"
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/yidane/formula/internal/fs"
@@ -165,6 +166,51 @@ func TestExpressionWithParameter(t *testing.T) {
 	}
 }
 
+func TestExpressionWithParameter2(t *testing.T) {
+	const expressionString = "[i]+[j]"
+	testCases := []struct {
+		i interface{}
+		j interface{}
+	}{
+		{[]float64{1, 2, 3}, []float64{1, 4, 6}},
+		{1.0, []float64{2, 3, 4}},
+		{[]float64{1, 3, 4, 5}, 3.0},
+		{2.0, 3.0},
+	}
+
+	expression := NewExpression(expressionString)
+
+	for _, tt := range testCases {
+		expression.ResetParameters()
+		err := expression.AddParameter("i", tt.i)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = expression.AddParameter("j", tt.j)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result, err := expression.Evaluate()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result.Type == reflect.Slice {
+			v, err := result.Float64Slice()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(v)
+		} else {
+			v, err := result.Float64()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(v)
+		}
+
+	}
+}
 func BenchmarkOnePlusOne(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		expression := NewExpression("1+1")

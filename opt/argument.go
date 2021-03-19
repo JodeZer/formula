@@ -139,6 +139,15 @@ func (arg *Argument) Float64() (float64, error) {
 	}
 }
 
+func (arg *Argument) Float64Slice() ([]float64, error) {
+	switch arg.Type {
+	case reflect.Slice:
+		return arg.Value.([]float64), nil
+	default:
+		return []float64{0}, fmt.Errorf("type %s can not convert to float64", arg.Type)
+	}
+}
+
 func (arg *Argument) String() string {
 	switch arg.Type {
 	case reflect.Bool:
